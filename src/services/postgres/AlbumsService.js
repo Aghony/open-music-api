@@ -1,5 +1,7 @@
+const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const InvariantError = require('../../exceptions/InvariantError');
 
 class AlbumsService {
   constructor() {
@@ -7,28 +9,36 @@ class AlbumsService {
   }
 
   async addAlbum({ name, year }) {
+    const id = `album-${nanoid(16)}`;
+
     const query = {
-      text: 'INSERT INTO albums (name, year) VALUES ($1, $2) RETURNING id',
-      values: [name, year],
+      text: 'INSERT INTO albums VALUES ($1, $2, $3) RETURNING id',
+      values: [id, name, year],
     };
     const result = await this._pool.query(query);
+
+    if (!result.rows[0].id){
+      throw new InvariantError('Album gagal ditambahkan');
+    }
+
     return result.rows[0].id;
   }
 
   async getAlbumsById(id) {
-    const query = {
+
+    const queryAlbums = {
       text: 'SELECT * FROM albums WHERE id = $1',
       values: [id],
     };
-    const result = await this._pool.query(query);
+    const querySongs = {
+      text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
+      values: [id],
+    };
+    const result = await this._pool.query(queryAlbums);
+    const resultSongs = await this._pool.query(querySongs);
     if (!result.rowCount) {
       throw new NotFoundError('Album Not Found');
     }
-    const querySongs = {
-      text: 'SELECT id, title, performer FROM songs WHERE albums_id = $1',
-      values: [id],
-    };
-    const resultSongs = await this._pool.query(querySongs);
     const mappedResult= {
       id: result.rows[0].id,
       name: result.rows[0].name,
@@ -38,16 +48,19 @@ class AlbumsService {
     return mappedResult;
   }
 
-  async updatedAlbumById(id, { name, year }) {
+  async editAlbumById(id, { name, year }) {
     const query = {
       text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
       values: [name, year, id],
     };
+
     const result = await this._pool.query(query);
 
-    if (!result.rowCount) {
-      throw new NotFoundError('Gagal menperbarui lagu. Id tidak ditemukan');
+    if (result.rowCount === 0) {
+      throw new NotFoundError(`Gagal memperbarui album. ID ${id} tidak ditemukan.`);
     }
+
+    return result.rows[0].id;
   }
 
   async deleteAlbumById(id){
