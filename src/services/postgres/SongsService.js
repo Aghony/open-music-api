@@ -16,9 +16,10 @@ class SongsService{
     const updatedAt = createdAt;
 
     const query = {
-      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, &9) RETURNING id',
-      values: [id, title, year, performer, genre, duration, albumId, createdAt, updatedAt,],
+      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+      values: [id, title, year, performer, genre, duration, albumId, createdAt, updatedAt],
     };
+    console.log(query);
 
     const result = await this._pool.query(query);
 
@@ -29,9 +30,12 @@ class SongsService{
     return result.rows[0].id;
   }
 
-  async getSong() {
-    const result = await this._pool.query('SELECT * FROM songs');
-    return result.rows.ma(mapDBToModelSongs);
+  async getSongs() {
+    const query = {
+      text: 'SELECT id, title, performer FROM songs'
+    };
+    const result = await this._pool.query(query);
+    return result.rows.map(mapDBToModelSongs);
   }
 
   async getSongById(id) {
@@ -47,33 +51,34 @@ class SongsService{
     return result.rows.map(mapDBToModelSongs)[0];
   }
 
-  async editSongById(id, { title, body, tags }) {
-    const updatedAt = new Date().toISOString();
-
+  async editSongById(id, { title, year, performer, genre, duration }) {
     const query = {
-      text : 'UPDATE song SET title=$1, body=$2, tags=$3, updated_at=$4 WHERE id=$5 RETURNING id',
-      values: [title, body, tags, updatedAt, id], // Sekarang variabel ini didefinisikan sebagai parameter
+      text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5 WHERE id = $6 RETURNING id',
+      values: [title, year, performer, genre, duration, id],
     };
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
-      throw new NotFoundError('Gagal memperbarui lagu. Id tidak ditemukan');
+    if (result.rowCount === 0) {
+      throw new NotFoundError(`Gagal memperbarui lagu. Id ${id} tidak ditemukan`); // Ini penting!
     }
-  }
 
+    return result.rows[0].id;
+  }
 
   async deleteSongById(id) {
     const query = {
-      text: 'DELETE FROM notes WHERE id = $1 RETURNING id',
+      text: 'DELETE FROM songs WHERE id = $1 RETURNING id',
       values: [id],
     };
 
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new NotFoundError('Gagal menghapus lagu. Id tidak ditemukan');
+      throw new NotFoundError('Lagu tidak ditemukan');
     }
+
+    return result.rows[0].id;
   }
 }
 

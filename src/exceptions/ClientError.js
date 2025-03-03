@@ -1,4 +1,4 @@
-class ClinetError extends Error {
+class ClientError extends Error {  // Perbaiki nama class
   constructor(message, statusCode = 400) {
     super(message);
     this.statusCode = statusCode;
@@ -6,4 +6,4 @@ class ClinetError extends Error {
   }
 }
 
-module.exports = ClinetError;
+module.exports = ClientError;  // Perbaiki nama export

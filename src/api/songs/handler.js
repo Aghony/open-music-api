@@ -6,8 +6,8 @@ class SongsHandler {
     this.postSongHandler = this.postSongHandler.bind(this);
     this.getSongHandler = this.getSongsHandler.bind(this);
     this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
-    this.putSongByidHandler = this.putSongByIdHandler.bind(this);
-    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
+    this.putSongByIdHandler = this.putSongByIdHandler.bind(this);  // Ensure consistent naming
+    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);  // Ensure consistent naming
   }
 
   async postSongHandler(request, h) {
@@ -32,14 +32,13 @@ class SongsHandler {
 
     const response = h.response({
       status: 'success',
-      data : {
+      data: {
         songs,
       },
     });
     response.code(200);
     return response;
   }
-
 
   async getSongByIdHandler(request, h) {
     const { id } = request.params;
@@ -59,24 +58,22 @@ class SongsHandler {
     const { id } = request.params;
 
     await this._service.editSongById(id, request.payload);
-    const response = h.response({
+
+    return h.response({
       status: 'success',
       message: 'Lagu berhasil diperbarui',
-    });
-    response.code(200);
-    return response;
+    }).code(200);
   }
 
 
   async deleteSongByIdHandler(request, h) {
     const { id } = request.params;
-    await this._service.deleteSongByid(id);
-    const response = h.response({
+    await this._service.deleteSongById(id);
+
+    return h.response({
       status: 'success',
       message: 'Lagu Berhasil dihapus',
-    });
-    response.code(200);
-    return response;
+    }).code(200);
   }
 }
 
