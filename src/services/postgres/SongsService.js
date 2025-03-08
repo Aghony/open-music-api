@@ -30,12 +30,32 @@ class SongsService{
     return result.rows[0].id;
   }
 
-  async getSongs() {
+  async getSongs(title, performer) {
+    let baseQuery = 'SELECT id, title, performer FROM songs';
+    const values = [];
+    const conditions = [];
+
+    if (title) {
+      conditions.push(`LOWER(title) LIKE LOWER($${values.length + 1})`);
+      values.push(`%${title}%`);
+    }
+
+    if (performer) {
+      conditions.push(`LOWER(performer) LIKE LOWER($${values.length + 1})`);
+      values.push(`%${performer}%`);
+    }
+
+    if (conditions.length > 0) {
+      baseQuery += ` WHERE ${  conditions.join(' AND ')}`;
+    }
+
     const query = {
-      text: 'SELECT id, title, performer FROM songs'
+      text: baseQuery,
+      values,
     };
+
     const result = await this._pool.query(query);
-    return result.rows.map(mapDBToModelSongs);
+    return result.rows;
   }
 
   async getSongById(id) {
@@ -60,7 +80,7 @@ class SongsService{
     const result = await this._pool.query(query);
 
     if (result.rowCount === 0) {
-      throw new NotFoundError(`Gagal memperbarui lagu. Id ${id} tidak ditemukan`); // Ini penting!
+      throw new NotFoundError(`Gagal memperbarui lagu. Id ${id} tidak ditemukan`);
     }
 
     return result.rows[0].id;
