@@ -18,9 +18,7 @@ const routes = (handler) => [
     path: '/uploads/{param*}',
     handler: {
       directory: {
-        path: path.resolve(process.cwd(), 'src/api/uploads/file/images'), // ✅ Pakai process.cwd() untuk path absolut
-        listing: true, // ✅ Sementara aktifkan untuk debugging
-        index: false,
+        path: path.resolve(process.cwd(), 'file'),
       },
     },
   },

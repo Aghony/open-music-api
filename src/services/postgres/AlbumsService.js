@@ -25,11 +25,9 @@ class AlbumsService {
   }
 
   async uploadCoverById(albumId, coverUrl) {
-    const relativeCoverUrl = `${coverUrl.split('\\').pop()}`;
-    console.log('Saving coverUrl:', coverUrl);
     const query = {
       text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
-      values: [relativeCoverUrl, albumId],
+      values: [coverUrl, albumId],
     };
 
     const result = await this._pool.query(query);
@@ -49,7 +47,7 @@ class AlbumsService {
     };
     const result = await this._pool.query(queryAlbums);
     const resultSongs = await this._pool.query(querySongs);
-    console.log('🔍 Hasil Query Album:', result.rows);
+
     if (!result.rowCount) {
       throw new NotFoundError('Album Not Found');
     }
@@ -57,7 +55,7 @@ class AlbumsService {
       id: result.rows[0].id,
       name: result.rows[0].name,
       year: result.rows[0].year,
-      coverUrl: result.rows[0].cover ? `http://localhost:5000/uploads/${result.rows[0].cover}` : null,
+      coverUrl: result.rows[0].cover,
       songs: resultSongs.rows,
     };
     return mappedResult;
