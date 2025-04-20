@@ -1,4 +1,5 @@
 const path = require('path');
+
 const routes = (handler) => [
   {
     method: 'POST',
@@ -9,19 +10,19 @@ const routes = (handler) => [
         allow: 'multipart/form-data',
         multipart: true,
         output: 'stream',
-        maxBytes: 512000,
-      }
+        maxBytes:  512000,
+      },
     },
   },
   {
     method: 'GET',
-    path: '/uploads/{param*}',
+    path: '/albums/{param*}',
     handler: {
       directory: {
-        path: path.resolve(process.cwd(), 'file'),
+        path: path.resolve(__dirname, 'file'),
       },
     },
-  },
+  }
 ];
 
 module.exports = routes;
